@@ -28,7 +28,9 @@ export function SoundGrid({
           🦗
         </span>
         <p className="text-lg font-bold text-zinc-200">{emptyTitle}</p>
-        <p className="max-w-sm text-sm text-zinc-400">{emptyDescription}</p>
+        {emptyDescription && (
+          <p className="max-w-sm text-sm text-zinc-400">{emptyDescription}</p>
+        )}
       </div>
     );
   }

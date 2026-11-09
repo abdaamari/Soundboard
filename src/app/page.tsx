@@ -1,6 +1,5 @@
 import { PlayerToolbar } from "@/components/PlayerToolbar";
-import { SoundGrid } from "@/components/SoundGrid";
-import { BUILT_IN_SOUNDS } from "@/data/sounds";
+import { Soundboard } from "@/components/Soundboard";
 import { AudioPlayerProvider } from "@/hooks/useAudioPlayer";
 
 export default function Home() {
@@ -22,16 +21,7 @@ export default function Home() {
         </div>
 
         <main className="mt-8 flex flex-1 flex-col">
-          <div className="mb-4 flex items-baseline justify-between gap-3">
-            <h2 className="text-lg font-bold text-zinc-100">
-              Daftar Suara
-            </h2>
-            <span className="text-xs font-semibold text-zinc-500">
-              {BUILT_IN_SOUNDS.length} suara bawaan
-            </span>
-          </div>
-
-          <SoundGrid sounds={BUILT_IN_SOUNDS} />
+          <Soundboard />
         </main>
 
         <footer className="mt-12 border-t border-white/10 pt-4 text-center text-xs text-zinc-500">
