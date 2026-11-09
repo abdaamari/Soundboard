@@ -49,7 +49,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   },
   {
     id: "tada",
-    name: "Tadaa! 🎊",
+    name: "Tadaa!",
     emoji: "🎉",
     category: "Reaksi",
     src: "/sounds/tada.wav",
