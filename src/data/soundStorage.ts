@@ -1,8 +1,8 @@
 /**
  * Penyimpanan suara buatan user di IndexedDB.
  *
- * Metadata + file audio (Blob) disimpan di browser, jadi suara tetap ada
- * setelah reload tanpa backend.
+Metadata + file audio (Blob) + thumbnail gambar/GIF disimpan di browser, jadi
+ * suara tetap ada setelah reload tanpa backend.
  */
 
 const DB_NAME = "meme-soundboard-tim";
@@ -13,7 +13,14 @@ const STORE_NAME = "sounds";
 export interface StoredSound {
   id: string;
   name: string;
-  emoji: string;
+  /** Jenis konten: emoji, foto, atau GIF. */
+  assetType: "emoji" | "image" | "gif";
+  /** Emoji bila assetType=emoji, fallback tampilan saat belum ada gambar. */
+  emoji?: string;
+  /** Thumbnail gambar/GIF (base64 data URL atau Object URL). */
+  thumbnail: string;
+  /** Nama/file asli dari file yang diupload. */
+  sourceName?: string;
   category: string;
   /** File audio mentah (mp3/wav/ogg). */
   audio: Blob;

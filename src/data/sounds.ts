@@ -8,6 +8,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   {
     id: "airhorn",
     name: "Klakson Meme",
+    assetType: "emoji",
     emoji: "📯",
     category: "Meme",
     src: "/sounds/airhorn.wav",
@@ -15,6 +16,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   {
     id: "vine-boom",
     name: "Vine Boom",
+    assetType: "emoji",
     emoji: "💥",
     category: "Meme",
     src: "/sounds/vine-boom.wav",
@@ -22,6 +24,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   {
     id: "bruh",
     name: "Bruh",
+    assetType: "emoji",
     emoji: "🗿",
     category: "Meme",
     src: "/sounds/bruh.wav",
@@ -29,6 +32,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   {
     id: "record-scratch",
     name: "Record Scratch",
+    assetType: "emoji",
     emoji: "🎧",
     category: "Meme",
     src: "/sounds/record-scratch.wav",
@@ -36,6 +40,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   {
     id: "sad-trombone",
     name: "Trombone Sedih",
+    assetType: "emoji",
     emoji: "🎺",
     category: "Reaksi",
     src: "/sounds/sad-trombone.wav",
@@ -43,6 +48,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   {
     id: "sad-violin",
     name: "Violin Sedih",
+    assetType: "emoji",
     emoji: "🎻",
     category: "Reaksi",
     src: "/sounds/sad-violin.wav",
@@ -50,6 +56,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   {
     id: "tada",
     name: "Tadaa!",
+    assetType: "emoji",
     emoji: "🎉",
     category: "Reaksi",
     src: "/sounds/tada.wav",
@@ -57,6 +64,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   {
     id: "ding",
     name: "Ding Poin",
+    assetType: "emoji",
     emoji: "🔔",
     category: "Reaksi",
     src: "/sounds/ding.wav",
@@ -64,6 +72,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   {
     id: "drum-roll",
     name: "Drum Roll",
+    assetType: "emoji",
     emoji: "🥁",
     category: "Musik",
     src: "/sounds/drum-roll.wav",
@@ -71,6 +80,7 @@ export const BUILT_IN_SOUNDS: Sound[] = [
   {
     id: "boing",
     name: "Boing!",
+    assetType: "emoji",
     emoji: "🦘",
     category: "Musik",
     src: "/sounds/boing.wav",

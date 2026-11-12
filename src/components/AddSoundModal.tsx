@@ -1,37 +1,60 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { NewSoundInput } from "@/hooks/useSounds";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-const ALLOWED_EXTENSIONS = ["mp3", "wav", "ogg"];
-const ALLOWED_MIME_TYPES = [
+
+const AUDIO_EXTENSIONS = ["mp3", "wav", "ogg"];
+const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "webp"];
+const GIF_EXTENSIONS = ["gif"];
+
+const AUDIO_MIME_TYPES = [
   "audio/mpeg",
   "audio/mp3",
   "audio/wav",
   "audio/x-wav",
   "audio/ogg",
 ];
+const IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const GIF_MIME_TYPES = ["image/gif"];
 
 const NEW_CATEGORY_VALUE = "__new__";
 
-interface AddSoundModalProps {
-  open: boolean;
-  onClose: () => void;
-  /** Dipanggil saat form valid dan siap disimpan. */
-  onSubmit: (input: NewSoundInput) => Promise<void>;
-  /** Kategori yang sudah ada (untuk select). */
-  categories: string[];
-}
+type MediaType = "audio" | "image" | "gif";
 
-function validateFile(file: File | null): string | null {
-  if (!file) return "File audio wajib dipilih.";
+function validateFile(
+  file: File | null,
+  mediaType: MediaType,
+): string | null {
+  if (!file) return "File wajib dipilih.";
 
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const mime = file.type.toLowerCase();
+
+  let allowedExt: string[];
+  let allowedMime: string[];
+  let label: string;
+
+  if (mediaType === "audio") {
+    allowedExt = AUDIO_EXTENSIONS;
+    allowedMime = AUDIO_MIME_TYPES;
+    label = "mp3, wav, atau ogg";
+  } else if (mediaType === "image") {
+    allowedExt = IMAGE_EXTENSIONS;
+    allowedMime = IMAGE_MIME_TYPES;
+    label = "png, jpg, jpeg, atau webp";
+  } else {
+    allowedExt = GIF_EXTENSIONS;
+    allowedMime = GIF_MIME_TYPES;
+    label = "gif";
+  }
+
   const typeOk =
-    ALLOWED_EXTENSIONS.includes(ext) || ALLOWED_MIME_TYPES.includes(file.type);
+    allowedExt.includes(ext) || allowedMime.includes(mime);
   if (!typeOk) {
-    return "Format file harus mp3, wav, atau ogg.";
+    return `Format file harus ${label}.`;
   }
 
   if (file.size > MAX_FILE_SIZE) {
@@ -42,8 +65,18 @@ function validateFile(file: File | null): string | null {
   return null;
 }
 
+interface AddSoundModalProps {
+  open: boolean;
+  onClose: () => void;
+  /** Dipanggil saat form valid dan siap disimpan. */
+  onSubmit: (input: NewSoundInput) => Promise<void>;
+  /** Kategori yang sudah ada (untuk select). */
+  categories: string[];
+}
+
 /**
- * Modal untuk menambah suara baru: nama, emoji, kategori, dan upload audio.
+ * Modal untuk menambah suara baru: nama, kategori, upload audio atau gambar/GIF,
+ * dan emoji (opsional untuk gambar/GIF).
  * Bisa ditutup dengan Esc atau klik backdrop, dengan focus trap.
  */
 export function AddSoundModal({
@@ -61,6 +94,7 @@ export function AddSoundModal({
 
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("");
+  const [mediaType, setMediaType] = useState<MediaType>("audio");
   // Modal dirender kondisional, jadi state awal langsung diisi dari kategori.
   const [category, setCategory] = useState(() => categories[0] ?? "");
   const [newCategory, setNewCategory] = useState("");
@@ -100,19 +134,30 @@ export function AddSoundModal({
     };
   }, [previewUrl]);
 
+  const handleMediaTypeChange = useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>) => {
+      setMediaType(event.target.value as MediaType);
+      setFile(null);
+      setFileError(null);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    },
+    [previewUrl],
+  );
+
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const nextFile = event.target.files?.[0] ?? null;
       setFile(nextFile);
       setFormError(null);
 
-      const error = validateFile(nextFile);
+      const error = validateFile(nextFile, mediaType);
       setFileError(error);
 
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(nextFile && !error ? URL.createObjectURL(nextFile) : null);
     },
-    [previewUrl],
+    [mediaType, previewUrl],
   );
 
   // Esc untuk menutup.
@@ -137,7 +182,7 @@ export function AddSoundModal({
 
     const focusables = Array.from(
       dialog.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], audio[controls], [tabindex]:not([tabindex="-1"])',
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], audio[controls], img[tabindex], [tabindex]:not([tabindex="-1"])',
       ),
     ).filter((el) => el.offsetParent !== null || el === document.activeElement);
 
@@ -167,7 +212,6 @@ export function AddSoundModal({
         category === NEW_CATEGORY_VALUE ? newCategory.trim() : category;
 
       if (!trimmedName) return setFormError("Nama suara wajib diisi.");
-      if (!trimmedEmoji) return setFormError("Emoji wajib diisi.");
       if (!finalCategory) {
         return setFormError(
           category === NEW_CATEGORY_VALUE
@@ -176,15 +220,29 @@ export function AddSoundModal({
         );
       }
 
-      const error = validateFile(file);
+      const error = validateFile(file, mediaType);
       if (error) return setFormError(error);
+
+      if (!previewUrl) {
+        return setFormError(
+          mediaType === "audio"
+            ? "File audio wajib diunggah sebelum disimpan."
+            : "Gambar/GIF wajib diunggah sebelum disimpan.",
+        );
+      }
+
+      const assetType =
+        mediaType === "audio" ? "emoji" : mediaType === "image" ? "image" : "gif";
 
       setIsSubmitting(true);
       try {
         await onSubmit({
           name: trimmedName,
           emoji: trimmedEmoji,
+          assetType,
+          thumbnail: previewUrl,
           category: finalCategory,
+          sourceName: file?.name || undefined,
           file: file as File,
         });
         onClose();
@@ -194,13 +252,30 @@ export function AddSoundModal({
         setIsSubmitting(false);
       }
     },
-    [name, emoji, category, newCategory, file, onSubmit, onClose],
+    [
+      name,
+      emoji,
+      mediaType,
+      previewUrl,
+      category,
+      newCategory,
+      file,
+      onSubmit,
+      onClose,
+    ],
   );
 
   if (!open) return null;
 
   const inputClassName =
     "w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-amber-300/70 focus:ring-2 focus:ring-amber-300/30";
+
+  const accept =
+    mediaType === "audio"
+      ? ".mp3,.wav,.ogg,audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/ogg"
+      : mediaType === "image"
+        ? ".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+        : ".gif,image/gif";
 
   return (
     <div
@@ -225,7 +300,7 @@ export function AddSoundModal({
               🔊 Tambah Suara
             </h2>
             <p id={descriptionId} className="mt-1 text-sm text-zinc-400">
-              Upload efek suara lucu kamu (maks. 2MB).
+              Upload efek suara atau ikon suara kamu (maks. 2MB).
             </p>
           </div>
           <button
@@ -260,21 +335,43 @@ export function AddSoundModal({
 
           <div className="flex flex-col gap-1.5">
             <label
-              htmlFor="sound-emoji"
+              htmlFor="sound-media-type"
               className="text-xs font-bold uppercase tracking-wide text-zinc-300"
             >
-              Emoji <span className="text-rose-400">*</span>
+              Jenis ikon <span className="text-rose-400">*</span>
             </label>
-            <input
-              id="sound-emoji"
-              type="text"
-              value={emoji}
-              onChange={(event) => setEmoji(event.target.value)}
-              placeholder="cth: 🤡"
-              maxLength={8}
-              className={`${inputClassName} w-28`}
-            />
+            <select
+              id="sound-media-type"
+              value={mediaType}
+              onChange={handleMediaTypeChange}
+              className={inputClassName}
+            >
+              <option value="audio">🔊 Emoji (default)</option>
+              <option value="image">🖼️ Foto</option>
+              <option value="gif">🎞️ GIF</option>
+            </select>
           </div>
+
+          {mediaType === "audio" && (
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="sound-emoji"
+                className="text-xs font-bold uppercase tracking-wide text-zinc-300"
+              >
+                Emoji <span className="text-rose-400">*</span>
+              </label>
+              <input
+                id="sound-emoji"
+                type="text"
+                value={emoji}
+                onChange={(event) => setEmoji(event.target.value)}
+                placeholder="cth: 🤡"
+                maxLength={8}
+                className={`${inputClassName} w-28`}
+                aria-label="Emoji tombol"
+              />
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <label
@@ -315,17 +412,22 @@ export function AddSoundModal({
               htmlFor="sound-file"
               className="text-xs font-bold uppercase tracking-wide text-zinc-300"
             >
-              File audio <span className="text-rose-400">*</span>
+              {mediaType === "audio" ? "File audio" : "File gambar"}
+              <span className="text-rose-400">*</span>
             </label>
             <input
               id="sound-file"
               type="file"
-              accept=".mp3,.wav,.ogg,audio/mpeg,audio/wav,audio/ogg"
+              accept={accept}
               onChange={handleFileChange}
               className="file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-amber-300 file:px-4 file:py-2 file:text-xs file:font-black file:text-amber-950 hover:file:bg-amber-200"
             />
             <p className="text-xs text-zinc-500">
-              Format: mp3 / wav / ogg — maksimal 2MB.
+              {mediaType === "audio"
+                ? "Format: mp3 / wav / ogg — maksimal 2MB."
+                : mediaType === "image"
+                  ? "Format: png / jpg / jpeg / webp — maksimal 2MB."
+                  : "Format: gif — maksimal 2MB."}
             </p>
             {fileError && (
               <p role="alert" className="text-xs font-semibold text-rose-400">
@@ -337,9 +439,21 @@ export function AddSoundModal({
           {previewUrl && (
             <div className="rounded-xl border border-white/10 bg-white/5 p-3">
               <p className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-300">
-                🔈 Preview
+                {mediaType === "audio" ? "🔈 Preview" : "👁️ Preview"}
               </p>
-              <audio controls src={previewUrl} className="w-full" />
+              {mediaType === "audio" ? (
+                <audio controls src={previewUrl} className="w-full" />
+              ) : (
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  width={800}
+                  height={400}
+                  unoptimized
+                  className="w-full rounded-lg object-cover"
+                  tabIndex={-1}
+                />
+              )}
             </div>
           )}
 
@@ -373,3 +487,4 @@ export function AddSoundModal({
     </div>
   );
 }
+

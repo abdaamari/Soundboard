@@ -11,8 +11,11 @@ import type { Sound } from "@/types/sound";
 
 export interface NewSoundInput {
   name: string;
-  emoji: string;
+  emoji?: string;
+  assetType: "emoji" | "image" | "gif";
+  thumbnail: string;
   category: string;
+  sourceName?: string;
   /** File audio hasil upload (mp3/wav/ogg, maks 2MB). */
   file: File;
 }
@@ -68,7 +71,10 @@ export function useSounds(): UseSoundsResult {
           return {
             id: record.id,
             name: record.name,
+            assetType: record.assetType,
             emoji: record.emoji,
+            thumbnail: record.thumbnail,
+            sourceName: record.sourceName,
             category: record.category,
             src: url,
             isCustom: true,
@@ -95,7 +101,10 @@ export function useSounds(): UseSoundsResult {
     const record = {
       id,
       name: input.name.trim(),
-      emoji: input.emoji.trim(),
+      assetType: input.assetType,
+      emoji: input.emoji?.trim(),
+      thumbnail: input.thumbnail,
+      sourceName: input.sourceName?.trim() || undefined,
       category: input.category.trim(),
       audio: input.file,
       createdAt: Date.now(),
@@ -109,7 +118,10 @@ export function useSounds(): UseSoundsResult {
     const sound: Sound = {
       id,
       name: record.name,
+      assetType: record.assetType,
       emoji: record.emoji,
+      thumbnail: record.thumbnail,
+      sourceName: record.sourceName,
       category: record.category,
       src: url,
       isCustom: true,

@@ -24,7 +24,7 @@ export function Soundboard() {
   const handleDelete = useCallback(
     (sound: Sound) => {
       const confirmed = window.confirm(
-        `Hapus suara "${sound.emoji} ${sound.name}"? Tindakan ini tidak bisa dibatalkan.`,
+        `Hapus suara "${(sound.emoji ?? "")} ${sound.name}"? Tindakan ini tidak bisa dibatalkan.`,
       );
       if (!confirmed) return;
 

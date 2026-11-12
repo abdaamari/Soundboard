@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import type { Sound } from "@/types/sound";
 
@@ -49,12 +50,24 @@ export function SoundButton({ sound, onDelete }: SoundButtonProps) {
             : "border-white/10 bg-white/5 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/10",
         ].join(" ")}
       >
-        <span
-          aria-hidden="true"
-          className="text-4xl leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
-        >
-          {sound.emoji}
-        </span>
+        {sound.assetType === "emoji" ? (
+          <span
+            aria-hidden="true"
+            className="text-4xl leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
+          >
+            {sound.emoji ?? "❓"}
+          </span>
+        ) : (
+          <Image
+            src={sound.thumbnail ?? "/"}
+            alt={sound.name}
+            width={64}
+            height={64}
+            unoptimized
+            className="h-16 w-16 rounded-xl object-cover bg-white/5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
+            loading="lazy"
+          />
+        )}
 
         <span className="line-clamp-2 text-sm font-semibold text-zinc-100">
           {sound.name}
